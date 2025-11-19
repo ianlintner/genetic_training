@@ -5,66 +5,58 @@ pydantic==2.5.3
 pydantic-settings==2.1.0
 python-multipart==0.0.6
 
-# LangChain and LLM providers
-langchain==0.1.4
-langchain-openai==0.0.5
-langchain-anthropic==0.1.1
-langchain-google-genai==0.0.6
-langchain-groq==0.0.1
-langchain-community==0.0.16
-
-# Local model support
-transformers==4.37.0
-torch==2.1.2
-accelerate==0.26.1
-sentencepiece==0.1.99
-protobuf==4.25.2
-
-# llama.cpp support
-llama-cpp-python==0.2.44
-
-# ctransformers support
-ctransformers==0.2.27
-
-# OpenAI
-openai==1.10.0
-
-# Anthropic
-anthropic==0.8.1
-
-# Google
-google-generativeai==0.3.2
-
-# Groq
-groq==0.4.1
-
-# Storage backends
-chromadb==0.4.22
-psycopg2-binary==2.9.9
-pgvector==0.2.4
-
-# Data processing
-numpy==1.26.3
-pandas==2.1.4
-datasets==2.16.1
-
-# NLP tools
-spacy==3.7.2
-nltk==3.8.1
-textstat==0.7.3
-
-# Validation and safety
-detoxify==0.5.2
-
 # Configuration
 pyyaml==6.0.1
 python-dotenv==1.0.0
-
-# Genetic algorithm
-deap==1.4.1
 
 # Utilities
 tqdm==4.66.1
 loguru==0.7.2
 aiofiles==23.2.1
 httpx==0.26.0
+
+# LangChain and LLM providers
+langchain==0.1.4
+langchain-openai==0.0.5
+langchain-anthropic==0.1.1
+langchain-google-genai==0.0.6
+langchain-community==0.0.16
+
+# Cloud LLM APIs (lightweight, no compilation needed)
+openai==1.10.0
+anthropic==0.8.1
+google-generativeai==0.3.2
+
+# Data processing (install numpy first to help other packages)
+numpy==1.26.3
+pandas==2.1.4
+
+# NLP tools
+nltk==3.8.1
+textstat==0.7.3
+
+# Validation and safety
+detoxify==0.5.2
+
+# Storage backends (lighter options first)
+psycopg2-binary==2.9.9
+pgvector==0.2.4
+
+# Genetic algorithm
+deap==1.4.1
+
+# Optional: Local model support (can be heavy, made optional)
+# Uncomment if needed - these require more build time
+# transformers==4.37.0
+# torch==2.1.2
+# accelerate==0.26.1
+# sentencepiece==0.1.99
+# protobuf==4.25.2
+# spacy==3.7.2
+# datasets==2.16.1
+# chromadb==0.4.22
+
+# Optional: Heavy compilation packages (groq has langchain support, these need C++ compiler)
+# Uncomment if needed - these require compilation and can fail in Docker
+# llama-cpp-python==0.2.44
+# ctransformers==0.2.27

@@ -1,14 +1,25 @@
 """CTransformers model implementation."""
 from typing import Any, Dict
-from ctransformers import AutoModelForCausalLM
 
 from app.base import BaseModel, ModelBackend
+
+try:
+    from ctransformers import AutoModelForCausalLM
+    CTRANSFORMERS_AVAILABLE = True
+except ImportError:
+    CTRANSFORMERS_AVAILABLE = False
 
 
 class CTransformersModel(BaseModel):
     """CTransformers model wrapper for GGML models."""
     
     def __init__(self, model_path: str, config: Dict[str, Any]):
+        if not CTRANSFORMERS_AVAILABLE:
+            raise ImportError(
+                "ctransformers is not installed. "
+                "Install with: pip install ctransformers"
+            )
+        
         self.config = config
         self.model_path = model_path
         

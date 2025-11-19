@@ -1,14 +1,25 @@
 """llama.cpp model implementation."""
 from typing import Any, Dict
-from llama_cpp import Llama
 
 from app.base import BaseModel, ModelBackend
+
+try:
+    from llama_cpp import Llama
+    LLAMA_CPP_AVAILABLE = True
+except ImportError:
+    LLAMA_CPP_AVAILABLE = False
 
 
 class LlamaCppModel(BaseModel):
     """llama.cpp model wrapper for GGUF models."""
     
     def __init__(self, model_path: str, config: Dict[str, Any]):
+        if not LLAMA_CPP_AVAILABLE:
+            raise ImportError(
+                "llama-cpp-python is not installed. "
+                "Install with: pip install llama-cpp-python"
+            )
+        
         self.config = config
         self.model_path = model_path
         

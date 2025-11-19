@@ -1,15 +1,26 @@
 """Local Transformers model implementation."""
 from typing import Any, Dict
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
 from app.base import BaseModel, ModelBackend
+
+try:
+    import torch
+    from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    TRANSFORMERS_AVAILABLE = False
 
 
 class TransformersModel(BaseModel):
     """Local Transformers model wrapper."""
     
     def __init__(self, config: Dict[str, Any]):
+        if not TRANSFORMERS_AVAILABLE:
+            raise ImportError(
+                "Transformers and PyTorch are not installed. "
+                "Install with: pip install transformers torch"
+            )
+        
         self.config = config
         self.model_name = config.get("model_name", "mistralai/Mistral-7B-Instruct-v0.2")
         
