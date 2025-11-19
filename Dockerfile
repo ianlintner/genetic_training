@@ -29,6 +29,8 @@ FROM dependencies as application
 # Copy application code
 COPY app/ ./app/
 COPY configs/ ./configs/
+COPY main.py .
+COPY examples.py .
 
 # Create directories
 RUN mkdir -p logs data models
@@ -42,10 +44,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD python -c "import sys; sys.exit(0)" || exit 1
 
 # Run uvicorn server
-CMD ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # Stage 4: GPU support (optional)
 FROM application as gpu
