@@ -40,7 +40,7 @@ htmlcov/
 .tox/
 
 # Models and data
-models/
+/models/
 data/cached_*
 data/*.db
 data/*.sqlite
