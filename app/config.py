@@ -81,10 +81,13 @@ class EvolutionConfig(BaseModel):
 class StorageConfig(BaseModel):
     """Storage backend configuration."""
     backend: str = "json"
-    json: Dict[str, str] = Field(default_factory=lambda: {"path": "data/results.json"})
-    sqlite: Dict[str, str] = Field(default_factory=lambda: {"path": "data/results.db"})
-    chromadb: Dict[str, str] = Field(default_factory=dict)
-    postgresql: Dict[str, Any] = Field(default_factory=dict)
+    json_config: Dict[str, str] = Field(default_factory=lambda: {"path": "data/results.json"}, alias="json")
+    sqlite_config: Dict[str, str] = Field(default_factory=lambda: {"path": "data/results.db"}, alias="sqlite")
+    chromadb_config: Dict[str, str] = Field(default_factory=dict, alias="chromadb")
+    postgresql_config: Dict[str, Any] = Field(default_factory=dict, alias="postgresql")
+    
+    class Config:
+        populate_by_name = True
 
 
 class APIConfig(BaseModel):

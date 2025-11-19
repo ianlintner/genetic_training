@@ -310,7 +310,17 @@ def create_store(backend: str = "json", config: Optional[Dict[str, Any]] = None)
     if config is None:
         from app.config import get_config
         app_config = get_config()
-        config = getattr(app_config.storage, backend, {})
+        # Get the config using both the original and aliased field names
+        if backend == "json":
+            config = app_config.storage.json_config
+        elif backend == "sqlite":
+            config = app_config.storage.sqlite_config
+        elif backend == "chromadb":
+            config = app_config.storage.chromadb_config
+        elif backend == "postgresql":
+            config = app_config.storage.postgresql_config
+        else:
+            config = {}
     
     if backend == "json":
         path = config.get("path", "data/results.json")
