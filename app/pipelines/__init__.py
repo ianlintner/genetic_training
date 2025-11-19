@@ -9,6 +9,7 @@ from app.base import BasePipeline, GenerationResult
 from app.models import get_registry
 from app.validators import HybridValidator
 from app.config import get_config
+from app.prompts import REVISION_PROMPT_TEMPLATE
 
 
 class GenerateValidatePipeline(BasePipeline):
@@ -232,17 +233,11 @@ class ReviseLoopPipeline(BasePipeline):
         judge_result = validation.details.get("judge_result", {})
         reasoning = judge_result.get("reasoning", "")
         
-        revision_prompt = f"""The following response needs improvement:
-
-Original Prompt: {original_prompt}
-
-Current Response: {text}
-
-Issues identified:
-{', '.join(issues) if issues else 'General quality improvement needed'}
-
-Judge feedback: {reasoning}
-
-Please provide an improved version that addresses these issues while maintaining the core content and intent."""
+        revision_prompt = REVISION_PROMPT_TEMPLATE.format(
+            original_prompt=original_prompt,
+            text=text,
+            issues=', '.join(issues) if issues else 'General quality improvement needed',
+            reasoning=reasoning
+        )
         
         return revision_prompt

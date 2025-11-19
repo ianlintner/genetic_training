@@ -7,34 +7,11 @@ from loguru import logger
 
 from app.base import BaseModel
 from app.models import get_registry
+from app.prompts import JUDGE_PROMPT_TEMPLATE
 
 
 class LLMJudge:
     """Uses an LLM to judge response quality."""
-    
-    JUDGE_PROMPT_TEMPLATE = """You are an expert evaluator assessing the quality of AI-generated text.
-
-Evaluate the following response based on these criteria:
-1. Correctness: Is the information accurate and appropriate?
-2. Coherence: Is the text well-structured and logical?
-3. Hallucination: Does it contain false or fabricated information?
-4. Completeness: Does it fully address the prompt?
-
-Prompt: {prompt}
-
-Response: {response}
-
-Provide your evaluation as a JSON object with scores from 0.0 to 1.0 for each criterion:
-{{
-  "correctness": 0.0-1.0,
-  "coherence": 0.0-1.0,
-  "hallucination_free": 0.0-1.0,
-  "completeness": 0.0-1.0,
-  "overall": 0.0-1.0,
-  "reasoning": "brief explanation"
-}}
-
-Only respond with the JSON object, no other text."""
     
     def __init__(self, model_name: Optional[str] = None, temperature: float = 0.3):
         """
@@ -70,7 +47,7 @@ Only respond with the JSON object, no other text."""
         try:
             model = self._get_model()
             
-            judge_prompt = self.JUDGE_PROMPT_TEMPLATE.format(
+            judge_prompt = JUDGE_PROMPT_TEMPLATE.format(
                 prompt=prompt or "N/A",
                 response=text
             )

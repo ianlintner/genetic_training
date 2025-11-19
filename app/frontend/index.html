@@ -365,10 +365,18 @@
         function setLoading(btnId, isLoading) {
             const btn = document.getElementById(btnId);
             if (isLoading) {
+                // Store original text if not already stored
+                if (!btn.dataset.originalText) {
+                    btn.dataset.originalText = btn.innerHTML;
+                }
                 btn.innerHTML = '<span class="loading"></span>';
                 btn.disabled = true;
             } else {
-                btn.innerHTML = btn.id.replace('-btn-text', '').replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                // Restore original text
+                if (btn.dataset.originalText) {
+                    btn.innerHTML = btn.dataset.originalText;
+                    delete btn.dataset.originalText;
+                }
                 btn.disabled = false;
             }
         }
