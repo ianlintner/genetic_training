@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Main API service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: application
+    container_name: llm-validator-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./configs:/app/configs
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./models:/app/models
+    environment:
+      - CONFIG_PATH=/app/configs/config.yaml
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    restart: unless-stopped
+    networks:
+      - validator-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL (optional)
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: llm-validator-db
+    environment:
+      - POSTGRES_USER=validator
+      - POSTGRES_PASSWORD=validator_password
+      - POSTGRES_DB=validator
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - validator-network
+    restart: unless-stopped
+    profiles:
+      - with-postgres
+
+  # ChromaDB (optional)
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: llm-validator-chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    networks:
+      - validator-network
+    restart: unless-stopped
+    profiles:
+      - with-chromadb
+
+networks:
+  validator-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  chroma-data:
