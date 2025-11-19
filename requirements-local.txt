@@ -1,0 +1,9 @@
+# Requirements for local model inference (C++ compilation required)
+# Use only if you need llama.cpp or ctransformers
+
+# Include base requirements
+-r requirements.txt
+
+# These require build-essential and cmake
+llama-cpp-python==0.2.44
+ctransformers==0.2.27

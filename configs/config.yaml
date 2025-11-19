@@ -1,0 +1,181 @@
+# Model Configuration
+models:
+  selected_model: "gpt-4o-mini"
+  local_model_path: "models/gguf/mistral-7b.gguf"
+  use_llama_cpp: false
+  use_ctransformers: false
+  
+  # Model registry
+  registry:
+    openai:
+      model_name: "gpt-4o-mini"
+      temperature: 0.7
+      max_tokens: 1000
+    
+    anthropic:
+      model_name: "claude-3-haiku-20240307"
+      temperature: 0.7
+      max_tokens: 1000
+    
+    groq:
+      model_name: "mixtral-8x7b-32768"
+      temperature: 0.7
+      max_tokens: 1000
+    
+    gemini:
+      model_name: "gemini-pro"
+      temperature: 0.7
+      max_tokens: 1000
+    
+    local_transformers:
+      model_name: "mistralai/Mistral-7B-Instruct-v0.2"
+      device: "auto"
+      torch_dtype: "auto"
+    
+    llama_cpp:
+      n_ctx: 2048
+      n_gpu_layers: 0
+      temperature: 0.7
+    
+    ctransformers:
+      model_type: "mistral"
+      context_length: 2048
+      gpu_layers: 0
+
+# Validation Configuration
+validation:
+  scoring:
+    weights:
+      heuristics: 0.4
+      judge: 0.6
+    
+    heuristics:
+      token_length:
+        enabled: true
+        weight: 0.15
+        min_tokens: 10
+        max_tokens: 2000
+      
+      contradiction:
+        enabled: true
+        weight: 0.20
+        threshold: 0.7
+      
+      harmful_content:
+        enabled: true
+        weight: 0.25
+        threshold: 0.5
+      
+      repetition:
+        enabled: true
+        weight: 0.15
+        max_ngram_repeat: 5
+      
+      structure:
+        enabled: true
+        weight: 0.10
+      
+      hallucination:
+        enabled: true
+        weight: 0.15
+        threshold: 0.6
+    
+    judge:
+      model: "gpt-4o-mini"
+      criteria:
+        - correctness
+        - coherence
+        - hallucination
+        - completeness
+      temperature: 0.3
+  
+  adaptive_learning:
+    enabled: true
+    history_size: 1000
+    update_interval: 100
+    learning_rate: 0.01
+
+# Pipeline Configuration
+pipelines:
+  generate_validate:
+    max_retries: 3
+    timeout: 60
+  
+  revise_loop:
+    max_revisions: 3
+    quality_threshold: 0.8
+    timeout: 120
+
+# Training Configuration
+training:
+  datasets:
+    - name: "halueval"
+      enabled: true
+      split: "train"
+      max_samples: 1000
+    
+    - name: "summeval"
+      enabled: true
+      split: "train"
+      max_samples: 1000
+  
+  epochs: 10
+  batch_size: 32
+  learning_rate: 0.001
+  validation_split: 0.2
+
+# Evolution Configuration
+evolution:
+  population_size: 20
+  generations: 50
+  mutation_rate: 0.2
+  crossover_rate: 0.7
+  elitism: 0.1
+  
+  mutation_ranges:
+    heuristic_weights: 0.1
+    judge_weight: 0.1
+    thresholds: 0.05
+    revision_depth: 1
+  
+  fitness:
+    metric: "error_rate"
+    minimize: true
+
+# Storage Configuration
+storage:
+  backend: "json"  # json, sqlite, chromadb, postgresql
+  
+  json:
+    path: "data/results.json"
+  
+  sqlite:
+    path: "data/results.db"
+  
+  chromadb:
+    path: "data/chromadb"
+    collection_name: "validation_results"
+  
+  postgresql:
+    host: "localhost"
+    port: 5432
+    database: "validator"
+    user: "validator"
+    password: "password"
+
+# API Configuration
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: true
+  log_level: "info"
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8000"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>"
+  file: "logs/app.log"
+  rotation: "500 MB"

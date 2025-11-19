@@ -1,0 +1,26 @@
+# Full requirements including all optional dependencies
+# This includes heavy packages that require compilation
+
+# Include base requirements
+-r requirements.txt
+
+# Groq langchain integration
+langchain-groq==0.0.1
+
+# Local model support (PyTorch and Transformers)
+transformers==4.37.0
+torch==2.1.2
+accelerate==0.26.1
+sentencepiece==0.1.99
+protobuf==4.25.2
+
+# Advanced NLP
+spacy==3.7.2
+datasets==2.16.1
+
+# Vector database
+chromadb==0.4.22
+
+# Local inference engines (require C++ compilation)
+# llama-cpp-python==0.2.44
+# ctransformers==0.2.27

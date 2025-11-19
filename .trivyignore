@@ -1,0 +1,9 @@
+# Trivy ignore file for known issues that are acceptable or have no fix
+
+# Ignore low severity vulnerabilities
+# CVE-XXXX-XXXX
+
+# Ignore vulnerabilities in development dependencies
+# These are not used in production
+
+# Add specific CVEs to ignore here as needed

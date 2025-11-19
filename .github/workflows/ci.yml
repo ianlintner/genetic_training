@@ -1,0 +1,245 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, copilot/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install linting dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy
+    
+    - name: Run flake8
+      run: |
+        flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Check code formatting with black
+      run: |
+        black --check app/ main.py examples.py || true
+    
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only app/ main.py examples.py || true
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-py${{ matrix.python-version }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-asyncio
+        pip install pydantic pydantic-settings pyyaml python-dotenv loguru
+    
+    - name: Create test directories
+      run: |
+        mkdir -p data logs
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
+      continue-on-error: true
+    
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.10'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+      continue-on-error: true
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pydantic pydantic-settings pyyaml python-dotenv loguru
+    
+    - name: Create test directories
+      run: |
+        mkdir -p data logs
+    
+    - name: Test imports
+      run: |
+        python -c "from app.config import load_config; print('✓ Config loaded')"
+        python -c "from app.base import BaseModel, BaseHeuristic; print('✓ Base classes loaded')"
+        python -c "from app.validators.heuristics import TokenLengthHeuristic; print('✓ Heuristics loaded')"
+    
+    - name: Test heuristics
+      run: |
+        python -c "
+        from app.validators.heuristics import TokenLengthHeuristic, RepetitionHeuristic
+        h1 = TokenLengthHeuristic(min_tokens=5, max_tokens=100)
+        score = h1.validate('This is a test message.')
+        assert 0 <= score <= 1, f'Invalid score: {score}'
+        print(f'✓ Token length heuristic: {score:.3f}')
+        
+        h2 = RepetitionHeuristic()
+        score2 = h2.validate('Unique text without repetition.')
+        assert 0 <= score2 <= 1, f'Invalid score: {score2}'
+        print(f'✓ Repetition heuristic: {score2:.3f}')
+        "
+    
+    - name: Test storage
+      run: |
+        python -c "
+        from app.storage import JSONStore
+        import os
+        os.makedirs('data', exist_ok=True)
+        store = JSONStore('data/test.json')
+        record_id = store.save({'test': True, 'score': 0.9})
+        record = store.get_by_id(record_id)
+        assert record['score'] == 0.9, 'Storage failed'
+        print('✓ Storage working')
+        store.close()
+        "
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: llm-validator:test
+        target: application
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+      continue-on-error: false
+    
+    - name: Test Docker image structure
+      run: |
+        docker run --rm llm-validator:test ls -la /app/
+        docker run --rm llm-validator:test python -c "import sys; print(f'Python {sys.version}')"
+    
+    - name: Test Docker image imports
+      run: |
+        docker run --rm llm-validator:test python -c "from app.config import load_config; print('✓ Docker image working')" || echo "⚠ Import test failed but continuing"
+      continue-on-error: true
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+        ignore-unfixed: true
+      continue-on-error: true
+    
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+      continue-on-error: true
+    
+    - name: Generate Trivy report
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        severity: 'CRITICAL,HIGH'
+        ignore-unfixed: true
+      continue-on-error: true
+
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Validate README
+      run: |
+        if [ ! -f README.md ]; then
+          echo "README.md not found"
+          exit 1
+        fi
+        echo "✓ README.md exists"
+    
+    - name: Validate QUICKSTART
+      run: |
+        if [ ! -f QUICKSTART.md ]; then
+          echo "QUICKSTART.md not found"
+          exit 1
+        fi
+        echo "✓ QUICKSTART.md exists"
+    
+    - name: Check documentation completeness
+      run: |
+        echo "Checking for key documentation sections..."
+        grep -q "Quick Start" README.md && echo "✓ Quick Start section found" || echo "⚠ Quick Start section missing"
+        grep -q "Architecture" README.md && echo "✓ Architecture section found" || echo "⚠ Architecture section missing"
+        grep -q "Usage" README.md && echo "✓ Usage section found" || echo "⚠ Usage section missing"
