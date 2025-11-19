@@ -8,10 +8,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.config import load_config
-from app.models import get_registry
 from app.validators import HybridValidator
-from app.pipelines import GenerateValidatePipeline, ValidateOnlyPipeline, ReviseLoopPipeline
-from loguru import logger
+from app.pipelines import GenerateValidatePipeline, ReviseLoopPipeline
 
 
 def example_validate_text():

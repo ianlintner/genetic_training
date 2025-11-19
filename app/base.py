@@ -2,7 +2,7 @@
 Base interfaces and abstract classes for the LLM Validator system.
 """
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum

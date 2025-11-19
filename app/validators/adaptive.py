@@ -1,7 +1,7 @@
 """
 Adaptive learning system for validator optimization.
 """
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from collections import deque
 import json
 from pathlib import Path

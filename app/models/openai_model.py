@@ -1,5 +1,5 @@
 """OpenAI model implementation."""
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from langchain_openai import ChatOpenAI
 
 from app.base import BaseModel, ModelBackend

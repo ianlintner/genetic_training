@@ -3,13 +3,10 @@ FastAPI application with validation, training, and evolution endpoints.
 """
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional, List
+from typing import Optional, List
 from loguru import logger
 import sys
-from pathlib import Path
 
 from app.config import get_config
 from app.models import get_registry

@@ -288,7 +288,7 @@ class ChromaDBStore(BaseStore):
         try:
             self.collection.delete(ids=[record_id])
             return True
-        except:
+        except Exception:
             return False
     
     def close(self):

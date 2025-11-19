@@ -110,10 +110,14 @@ class GeneticOptimizer:
     def _setup_deap(self):
         """Setup DEAP framework."""
         # Create fitness and individual classes
-        if not hasattr(creator, "FitnessMax"):
+        try:
             creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-        if not hasattr(creator, "Individual"):
+        except AttributeError:
+            pass
+        try:
             creator.create("Individual", list, fitness=creator.FitnessMax, chromosome=None)
+        except AttributeError:
+            pass
         
         self.toolbox = base.Toolbox()
         
